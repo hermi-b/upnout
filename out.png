@@ -1,0 +1,34 @@
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from langchain_utils import generate_quest_from_location
+
+app = FastAPI()
+
+# Allow requests from iOS app (local dev or deployed)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to your frontend domain in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class LocationRequest(BaseModel):
+    latitude: float
+    longitude: float
+
+#this is the post endpoint (the beginning of which was made in the UI code) to accept the lat, long data
+@app.post("/generate-quest")
+async def get_quest(req: LocationRequest):
+    quest = generate_quest_from_location(req.latitude, req.longitude)
+    print("GO ON YOUR ADVENTURE", quest)
+    return {"quest": quest}
+
+#a get request is sent to the root path / automatically by your home server 127 to retrieve the main page of the application
+@app.get("/")
+async def read_root():
+    return {"message": "API is running"}
+
+#browsers also request /favicon.ico to display the websites icon in the browser tab
+

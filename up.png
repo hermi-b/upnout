@@ -1,0 +1,57 @@
+//
+//  soloquestView.swift
+//  upnout
+//
+//  Created by Hermela Benyam on 4/10/25.
+//
+
+import SwiftUI
+
+struct soloquestView: View {
+    @StateObject private var locationManager = LocationManager()
+    @State private var questText = "Loading quest..."
+
+    
+    var body: some View {
+        VStack(spacing: 30) {
+            Text(questText)
+                .padding()
+                .multilineTextAlignment(.center)
+
+
+            Button("Generate New Quest") {
+                print("Displaying view")
+
+                if let lat = locationManager.userLatitude,
+                   let lon = locationManager.userLongitude {
+                    print("LAT", lat, lon)
+                    QuestService.fetchQuest(lat: lat, lon: lon) { quest in
+                        self.questText = quest
+                    }
+                } else {
+                    questText = "Getting your location..."
+                }
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
+        .padding()
+        .onAppear {
+            if let lat = locationManager.userLatitude,
+               let lon = locationManager.userLongitude {
+                    QuestService.fetchQuest(lat: lat, lon: lon) { quest in
+                    self.questText = quest
+                        print("LAT", lat, lon)
+
+                }
+            }
+        }
+    }
+    
+}
+
+#Preview {
+    soloquestView()
+}

@@ -1,0 +1,185 @@
+//
+//  Friendsview.swift
+//  upnout
+//
+//  Created by Hermela Benyam on 5/1/25.
+//
+
+import SwiftUI
+import SwiftUI
+
+struct Friend: Identifiable {
+    let id = UUID()
+    let name: String
+    let avatar: String
+    let level: Int
+    let lastActive: String
+    let bio: String
+}
+
+struct FriendsView: View {
+    @State private var friends: [Friend] = [
+        Friend(name: "RiverSong", avatar: "leaf.fill", level: 12, lastActive: "5 mins ago", bio: "Nature wanderer and puzzle master 🌲"),
+        Friend(name: "MossKnight", avatar: "hare.fill", level: 8, lastActive: "2 hours ago", bio: "Loyal companion of the wildlands 🐇"),
+        Friend(name: "StoneWalker", avatar: "tortoise.fill", level: 14, lastActive: "Yesterday", bio: "Slow but wise. Hiking and tea lover 🐢"),
+        Friend(name: "BloomMage", avatar: "flower.fill", level: 11, lastActive: "Online", bio: "Gardens by day, games by night 🌸"),
+        Friend(name: "SkySeeker", avatar: "cloud.fill", level: 15, lastActive: "10 mins ago", bio: "High-flying adventurer and stargazer 🌤"),
+        Friend(name: "WindDancer", avatar: "wind", level: 9, lastActive: "1 hour ago", bio: "Dancing through the breeze, exploring new horizons 🌬️"),
+        Friend(name: "EarthWhisper", avatar: "earth.fill", level: 13, lastActive: "2 days ago", bio: "Listening to the earth's secrets 🌍"),
+        Friend(name: "SunSprout", avatar: "sun.max.fill", level: 16, lastActive: "15 mins ago", bio: "Shining bright and growing strong 🌞"),
+        Friend(name: "StarChaser", avatar: "star.fill", level: 7, lastActive: "1 day ago", bio: "Chasing the stars and dreams ✨"),
+        Friend(name: "NightOwl", avatar: "moon.stars.fill", level: 10, lastActive: "A week ago", bio: "Nighttime explorer and quiet thinker 🌙"),
+        Friend(name: "ThunderClap", avatar: "bolt.fill", level: 5, lastActive: "10 mins ago", bio: "Striking fast and strong ⚡️"),
+        Friend(name: "Riverstone", avatar: "waveform.path.ecg", level: 18, lastActive: "2 hours ago", bio: "Flowing with the currents, calm and steady 🌊")
+    ]
+    
+    @State private var showingAddFriend = false
+    @State private var selectedFriend: Friend?
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                LinearGradient(gradient: Gradient(colors: [.green.opacity(0.4), .blue.opacity(0.3)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .edgesIgnoringSafeArea(.all)
+                
+                VStack {
+                    List {
+                        ForEach(friends) { friend in
+                            Button(action: {
+                                selectedFriend = friend
+                            }) {
+                                HStack(spacing: 15) {
+                                    Image(systemName: friend.avatar)
+                                        .resizable()
+                                        .frame(width: 40, height: 40)
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .background(Circle().fill(Color.green.opacity(0.6)))
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text(friend.name)
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("Level \(friend.level) • Active \(friend.lastActive)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .listRowBackground(Color.clear)
+                        }
+                    }
+                    .listStyle(.insetGrouped)
+                }
+                .navigationTitle("🌿 Friends")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showingAddFriend = true
+                        }) {
+                            Label("Add Friend", systemImage: "person.badge.plus")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+                .sheet(item: $selectedFriend) { friend in
+                    FriendProfileView(friend: friend)
+                }
+                .sheet(isPresented: $showingAddFriend) {
+                    AddFriendView(friends: $friends)
+                }
+            }
+        }
+    }
+}
+
+struct FriendProfileView: View {
+    let friend: Friend
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(gradient: Gradient(colors: [.green, .mint]), startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                Image(systemName: friend.avatar)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .padding()
+                    .background(Circle().fill(.white.opacity(0.8)))
+                
+                Text(friend.name)
+                    .font(.largeTitle)
+                    .bold()
+                
+                Text("Level \(friend.level)")
+                    .font(.title2)
+                    .foregroundColor(.green)
+                
+                Text(friend.bio)
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                
+                Spacer()
+            }
+            .padding()
+        }
+    }
+}
+
+struct AddFriendView: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var friends: [Friend]
+    
+    @State private var name = ""
+    @State private var level = 1
+    @State private var avatar = "leaf.fill"
+    @State private var bio = ""
+    
+    let avatarOptions = ["leaf.fill", "hare.fill", "tortoise.fill", "flower.fill", "tree.fill", "ant.fill"]
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Friend Info")) {
+                    TextField("Name", text: $name)
+                    Picker("Avatar", selection: $avatar) {
+                        ForEach(avatarOptions, id: \.self) { icon in
+                            HStack {
+                                Image(systemName: icon)
+                                Text(icon)
+                            }
+                        }
+                    }
+                    Stepper("Level: \(level)", value: $level, in: 1...99)
+                    TextField("Short Bio", text: $bio)
+                }
+                
+                Button("Add Friend") {
+                    let newFriend = Friend(name: name, avatar: avatar, level: level, lastActive: "Just now", bio: bio)
+                    friends.append(newFriend)
+                    dismiss()
+                }
+                .disabled(name.isEmpty)
+            }
+            .navigationTitle("Add Friend")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+#Preview {
+    FriendsView()
+}
